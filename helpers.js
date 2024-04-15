@@ -13,8 +13,8 @@ const calculateCost = (consumption, rate) => {
     return consumption.reduce((acc, curr) => acc + parseFloat(curr.ProfileReadValue), 0) * rate;
 }
 const calculateSolar = (solarExport) => {
-    const getTime = obj => new Date(obj.startDate.split(' ')[0].split('/').reverse().join('-')).getTime();
-    periodInDays = (getTime(usage.slice(-1)[0]) - getTime(usage[0])) / (1000 * 60 * 60 * 24) + 1;
+    const formatDate = obj => new Date(obj.StartDate.split(' ')[0].split('/').reverse().join('-')).getTime();
+    periodInDays = (formatDate(usage.slice(-1)[0]) - formatDate(usage[0])) / (1000 * 60 * 60 * 24) + 1;
     console.log("Period in days:", periodInDays);
     const solarKws = calculateCost(solarExport, 1);
     const normalized10kws = periodInDays * 10;
@@ -24,12 +24,16 @@ const calculateSolar = (solarExport) => {
 const totalDailyCost = () => {
     const consumption = usage.filter(item => item.RateTypeDescription === "Usage");
     const peakConsumption = consumption.filter(item => {
-        const hr = item.startHr;
-        return hr >= tariffs.peakHours.start && hr <= tariffs.peakHours.end;
+        const hr = parseInt(item.StartDate.split(' ')[1].split(':')[0]);
+        const isPM = /pm/i.test(item.StartDate);
+        const hr24 = isPM ? hr + 12:hr;
+        return hr24 >= tariffs.peakHours.start && hr24 <= tariffs.peakHours.end;
     });
     const offPeakConsumption = consumption.filter(item => {
-        const hr = item.startHr;
-        return hr < tariffs.peakHours.start || hr > tariffs.peakHours.end;
+        const hr = parseInt(item.StartDate.split(' ')[1].split(':')[0]);
+        const isPM = /pm/i.test(item.StartDate);
+        const hr24 = isPM ? hr + 12:hr;
+        return hr24 < tariffs.peakHours.start || hr24 > tariffs.peakHours.end;
     });
     const solarExport = usage.filter(item => item.RateTypeDescription === "Solar");
     const solarExportCost = calculateSolar(solarExport);
@@ -38,6 +42,7 @@ const totalDailyCost = () => {
     const supplyCharge = tariffs.dailySupply * periodInDays;
     const netCost = peakConsumptionCost + offPeakConsumptionCost + supplyCharge - solarExportCost;
     document.querySelector('tr#results').innerHTML = `
+    <td>${periodInDays}</td>
     <td>$${solarExportCost.toFixed(2)}</td>
     <td>$${peakConsumptionCost.toFixed(2)}</td>
     <td>$${offPeakConsumptionCost.toFixed(2)}</td>

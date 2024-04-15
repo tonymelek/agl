@@ -25,13 +25,6 @@ function csvToJSON(csv) {
     return lines.map(line => {
         const values = line.split(',');
         return headers.reduce((acc, curr, index) => {
-            if (curr === 'StartDate') {
-                return {
-                    ...acc,
-                    startHr: new Date(values[index]).getHours(),
-                    startDate: values[index]
-                }
-            }
             return { ...acc, [curr]:values[index] }
         }, {})
     });

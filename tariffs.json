@@ -1,0 +1,8 @@
+{
+    "peakHours":{"start":15,"end":21},
+    "peakRate":0.37488,
+    "normalRate":0.24244,
+    "dailySupply":0.98406,
+    "feedInFirst10":0.1,
+    "feedInNormal":0.049
+}
